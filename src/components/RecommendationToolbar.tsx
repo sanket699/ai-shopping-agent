@@ -56,18 +56,19 @@ export default function RecommendationToolbar({
         type="button"
       >
         <span className="ai-button-icon">✦</span>
-        {isRecommending ? "Analyzing results..." : "AI Recommendations"}
+        {isRecommending ? "Analyzing results..." : "Ask AI for Top 3"}
       </button>
       <div className="model-menu" ref={modelMenuRef}>
         <button
           aria-expanded={isModelMenuOpen}
           aria-haspopup="listbox"
+          aria-label="Choose AI model"
           className="model-menu-trigger"
           disabled={isRecommending}
           onClick={() => setIsModelMenuOpen((isOpen) => !isOpen)}
           type="button"
         >
-          <span>NVIDIA Nemotron 3 Ultra</span>
+          <span aria-hidden="true" className="model-menu-trigger-icon">⚙</span>
           <span aria-hidden="true" className="model-menu-chevron">
             {isModelMenuOpen ? "↑" : "↓"}
           </span>
