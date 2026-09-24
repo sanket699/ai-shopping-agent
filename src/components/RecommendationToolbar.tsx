@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 type RecommendationToolbarProps = {
   model: string;
   defaultModel: string;
@@ -15,6 +17,36 @@ export default function RecommendationToolbar({
   onModelChange,
   onRecommend,
 }: RecommendationToolbarProps) {
+  const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
+  const modelMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleOutsideClick(event: MouseEvent) {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target as Node)) {
+        setIsModelMenuOpen(false);
+      }
+    }
+
+    function handleEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setIsModelMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  function selectModel(nextModel: string) {
+    onModelChange(nextModel);
+    setIsModelMenuOpen(false);
+  }
+
   return (
     <div className="recommendation-toolbar">
       <button
@@ -26,21 +58,43 @@ export default function RecommendationToolbar({
         <span className="ai-button-icon">✦</span>
         {isRecommending ? "Analyzing results..." : "AI Recommendations"}
       </button>
-      <label className="sr-only" htmlFor="ai-model">
-        Select AI model
-      </label>
-      <select
-        className="model-select"
-        disabled={isRecommending}
-        id="ai-model"
-        onChange={(event) => onModelChange(event.target.value)}
-        value={model}
-      >
-        <option value={defaultModel}>NVIDIA Nemotron 3 Ultra (Free)</option>
-        <option disabled value="coming-soon">
-          More AI Models — Coming Soon
-        </option>
-      </select>
+      <div className="model-menu" ref={modelMenuRef}>
+        <button
+          aria-expanded={isModelMenuOpen}
+          aria-haspopup="listbox"
+          className="model-menu-trigger"
+          disabled={isRecommending}
+          onClick={() => setIsModelMenuOpen((isOpen) => !isOpen)}
+          type="button"
+        >
+          <span>NVIDIA Nemotron 3 Ultra</span>
+          <span aria-hidden="true" className="model-menu-chevron">
+            {isModelMenuOpen ? "↑" : "↓"}
+          </span>
+        </button>
+        {isModelMenuOpen && (
+          <div aria-label="Available AI models" className="model-menu-list" role="listbox">
+            <button
+              aria-selected={model === defaultModel}
+              className="model-menu-option"
+              onClick={() => selectModel(defaultModel)}
+              role="option"
+              type="button"
+            >
+              NVIDIA Nemotron 3 Ultra
+            </button>
+            <button
+              aria-disabled="true"
+              className="model-menu-option model-menu-option-disabled"
+              disabled
+              role="option"
+              type="button"
+            >
+              More AI Models — Coming Soon
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
